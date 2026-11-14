@@ -1,0 +1,1425 @@
+[Reading 1421 lines from start (total: 1421 lines, 0 remaining)]
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Medusa — Zak Azoury</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=Vazirmatn:wght@400;600&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --glow: #d36;
+  --ac: #d36;
+  --ink: rgba(12, 9, 20, 0.62);
+  --line: rgba(255, 255, 255, 0.16);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #07060d;
+  overflow: hidden;
+  color: #fff;
+  font-family: Vazirmatn, system-ui, sans-serif;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: filter 1.8s;
+}
+
+/* ===== Top title ===== */
+.top {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: 0;
+  right: 0;
+  text-align: center;
+  direction: ltr;
+  font: italic 600 18px "Cormorant Garamond", Georgia, serif;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.8s;
+}
+.top small {
+  display: block;
+  font: 400 11px Vazirmatn, sans-serif;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* ===== Start screen ===== */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #07060d;
+  z-index: 100;
+  transition: opacity 1.2s ease;
+}
+#start-screen.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+#start-screen h1 {
+  font: italic 600 clamp(42px, 12vw, 90px) "Cormorant Garamond", Georgia, serif;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  text-shadow: 0 0 40px hsla(340, 100%, 65%, 0.5);
+}
+#start-screen p {
+  font: 400 14px Vazirmatn, sans-serif;
+  opacity: 0.6;
+  margin-bottom: 40px;
+  letter-spacing: 0.15em;
+}
+#start-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(211, 54, 102, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.35s cubic-bezier(0.22, 0.8, 0.25, 1);
+  backdrop-filter: blur(8px);
+}
+#start-btn:hover {
+  background: rgba(211, 54, 102, 0.35);
+  border-color: #d36;
+  transform: scale(1.08);
+  box-shadow: 0 0 40px rgba(211, 54, 102, 0.4);
+}
+#start-btn svg {
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+}
+
+/* ===== Lyrics ===== */
+.lyrics {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 67%;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+  z-index: 5;
+  transition: opacity 1s;
+}
+.track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  direction: ltr;
+  text-align: center;
+  padding: 0 22px;
+  transition: transform 0.7s cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.l {
+  margin: 0.5em auto;
+  max-width: 880px;
+  font: italic 600 clamp(22px, 5.4vw, 42px)/1.3 "Cormorant Garamond", Georgia, serif;
+  opacity: 0.1;
+  transform: scale(0.88);
+  transition: opacity 0.5s, transform 0.5s, text-shadow 0.5s;
+  cursor: pointer;
+}
+.l.p1, .l.n2 { opacity: 0.22; }
+.l.n1 { opacity: 0.42; transform: scale(0.93); }
+.l.on {
+  opacity: 1;
+  transform: none;
+  text-shadow: 0 0 26px var(--glow), 0 2px 10px #000;
+}
+
+/* ===== Bottom bar ===== */
+.bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(94vw, 720px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 99px;
+  background: var(--ink);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  direction: ltr;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s;
+}
+.bar.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.bar button {
+  flex: none;
+  height: 38px;
+  min-width: 38px;
+  padding: 0 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: #fff;
+  font: 600 13px Vazirmatn, sans-serif;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+#pp {
+  background: var(--ac);
+  border-color: transparent;
+  color: #150a14;
+  padding: 0;
+}
+.t {
+  font-size: 12px;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+input[type=range] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--ac);
+}
+
+/* ===== Final screen ===== */
+#fin {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  direction: ltr;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s;
+  padding: 24px;
+  z-index: 30;
+}
+.big {
+  font: italic 600 clamp(46px, 13vw, 120px)/1 "Cormorant Garamond", Georgia, serif;
+  text-shadow: 0 0 34px hsla(340, 100%, 65%, 0.7);
+}
+.sub {
+  font: 600 clamp(13px, 3.4vw, 24px) Vazirmatn, sans-serif;
+  letter-spacing: 0.2em;
+}
+#dl {
+  margin-top: 22px;
+  height: 46px;
+  padding: 0 28px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  background: var(--ac);
+  color: #150a14;
+  font: 600 14px Vazirmatn, sans-serif;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1.2s;
+  pointer-events: none;
+}
+body.fin #fin { opacity: 1; }
+body.dl #dl {
+  opacity: 1;
+  pointer-events: auto;
+}
+body.fin canvas { filter: blur(10px) brightness(0.65); }
+body.fin .lyrics { opacity: 0; }
+body.fin .bar { opacity: 0; pointer-events: none; }
+body.fin .top { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .track, .l { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="top">Medusa<small>Zak Azoury</small></div>
+
+<!-- Start Screen -->
+<div id="start-screen">
+  <h1>Medusa</h1>
+  <p>ZAK AZOURY</p>
+  <button id="start-btn" aria-label="شروع">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+</div>
+
+<!-- Lyrics -->
+<div class="lyrics">
+  <div class="track" id="tr"></div>
+</div>
+
+<!-- Controls -->
+<div class="bar" id="bar">
+  <button id="pp" aria-label="پخش"></button>
+  <span class="t" id="tm">0:00</span>
+  <input type="range" id="rg" min="0" max="175" step="0.1" value="0" aria-label="موقعیت آهنگ">
+</div>
+
+<!-- Final -->
+<div id="fin">
+  <div class="big">LOVE YOU ❤️</div>
+  <div class="sub">TILL THE END OF TIME</div>
+  <a id="dl" href="medusa.mp3" download="Medusa - Zak Azoury.mp3">دانلود آهنگ</a>
+</div>
+
+<audio id="a" preload="auto" src="medusa.mp3"></audio>
+
+<script>
+/* =========================================================
+   Medusa — cleaned & single-song version
+   ========================================================= */
+
+const $ = s => document.querySelector(s);
+const cv = $('#c');
+const g = cv.getContext('2d');
+const A = $('#a');
+const tr = $('#tr');
+const rg = $('#rg');
+const root = document.documentElement.style;
+
+/* ---------- Real lyrics with timing (from official LRC) ---------- */
+const LYRICS = [
+  { t: 7.12,  x: "There's a beat in the breeze, a sway in the trees" },
+  { t: 11.71, x: "A rhythm in the night that ignites your feet" },
+  { t: 16.07, x: "Four on the floor, fire in the sky" },
+  { t: 19.86, x: "So why'd the world stop spinning when your hand met mine?" },
+  { t: 23.65, x: "Oh, the city's alive, but I'm in a trance" },
+  { t: 28.51, x: "Darling, I'm frozen just by your glance" },
+  { t: 32.27, x: "I'm the stone that's been turned, it's too late to flee" },
+  { t: 36.72, x: "Darling, just one look is Medusa to me" },
+  { t: 40.39, x: "Have you ever been sleeping, and then you awake" },
+  { t: 45.53, x: "But can't move a muscle when you try?" },
+  { t: 50.12, x: "Darling, just one look, I'm paralyzed" },
+  { t: 56.77, x: "Oh, the city's alive, but I'm in a trance" },
+  { t: 61.69, x: "Darling, I'm frozen just by your glance" },
+  { t: 65.30, x: "I'm the stone that's been turned, it's too late to flee" },
+  { t: 69.81, x: "Darling, just one look is Medusa to me" },
+  { t: 73.52, x: "The guitar strums softly, a tale to confess" },
+  { t: 79.02, x: "A lovely creature, her sweet caress" },
+  { t: 82.80, x: "With a stare so pure, a gaze so fine" },
+  { t: 86.99, x: "I'll be hers alone 'til the end of time" },
+  { t: 106.36,x: "Oh, the city's alive, but I'm in a trance" },
+  { t: 111.26,x: "Darling, I'm frozen just by your glance" },
+  { t: 114.94,x: "I'm the stone that's been turned, it's too late to flee" },
+  { t: 119.51,x: "Darling, just one look is Medusa to me" },
+  { t: 139.47,x: "The guitar strums softly, a tale to confess" },
+  { t: 144.21,x: "A lovely creature, her sweet caress" },
+  { t: 148.02,x: "With a stare so pure, a gaze so fine" },
+  { t: 152.14,x: "I'll be hers alone 'til the end of time" },
+  { t: 156.04,x: "Oh, the city's alive, but I'm in a trance" },
+  { t: 160.82,x: "Darling, I'm frozen just by your glance" },
+  { t: 164.65,x: "I'm the stone that's been turned, it's too late to flee" },
+  { t: 169.28,x: "Darling, just one look is Medusa to me" }
+];
+
+const BLANK_TIMES = [92.53, 124.54, 174.63]; // moments without text
+const SECTIONS = [[0,'i'],[23,'c'],[40,'v'],[56,'c'],[73,'g'],[106,'c'],[124,'g'],[156,'c'],[175,'e']];
+const PALETTE = {
+  i: { h: 250, fire: 1 },
+  c: { h: 262, fire: 0.25 },
+  v: { h: 222, fire: 0 },
+  g: { h: 245, fire: 0 },
+  e: { h: 250, fire: 0 }
+};
+
+/* Camera speed timeline (original) */
+const SP = [
+  [0,20],[20,20],[23,90],[26,70],[29,20],[30,20],[33,95],[37,70],
+  [40,20],[56,35],[73,22],[90,15],[106,40],[124,25],[130,22],
+  [132,95],[135,80],[138,10],[139,0],[156,0],[157,200],[161,200],[165,0]
+];
+const END = 185;
+
+/* ---------- State ---------- */
+let lines = [], els = [], idx = -2;
+let hasAudio = false, playing = false, sim = 0;
+let last = performance.now(), drag = false;
+let tm = false, tail = 0, tp = false;
+let w, h, dpr, ac, an, buf, pk = 0.01, slow = 0, lh = 0, env = 0, pph = 0;
+let S = 55, parts = [], camT = [], stars, forest, bl, flw, ff;
+let c22, c156, D, gy, k, Pw;
+let started = false;
+
+const rng = s => () => (s = s * 16807 % 2147483647) / 2147483647;
+const dur = () => hasAudio && A.duration ? A.duration : 175;
+const now = () => hasAudio ? (tm ? dur() + tail : A.currentTime) : sim;
+const isPl = () => hasAudio ? (tm ? tp : !A.paused) : playing;
+const col = (l, a = 1, dh = 0) => `hsla(${(cur.h + dh) % 360 | 0},${S | 0}%,${l}%,${a})`;
+const fmt = x => `${x / 60 | 0}:${String(x % 60 | 0).padStart(2, '0')}`;
+const cur = { h: 250, fire: 1 };
+
+/* ---------- Build lyrics ---------- */
+function build(L) {
+  lines = L;
+  idx = -2;
+  tr.textContent = '';
+  els = L.map(l => {
+    const e = document.createElement('div');
+    e.className = 'l';
+    e.textContent = l.x || '♪';
+    e.onclick = () => seek(l.t);
+    tr.append(e);
+    return e;
+  });
+}
+build(LYRICS);
+
+/* ---------- Audio / Controls ---------- */
+function seek(x) {
+  if (!hasAudio) { sim = x; return; }
+  const d = dur();
+  if (x >= d - 0.05) {
+    A.pause();
+    tm = true;
+    tail = Math.max(0, x - d);
+    tp = false;
+  } else {
+    tm = false;
+    A.currentTime = x;
+  }
+}
+
+function toggle() {
+  if (!started) return;
+  if (hasAudio) {
+    if (!ac) {
+      ac = new AudioContext();
+      an = ac.createAnalyser();
+      an.fftSize = 256;
+      buf = new Uint8Array(an.frequencyBinCount);
+      ac.createMediaElementSource(A).connect(an);
+      an.connect(ac.destination);
+    }
+    ac.resume();
+    if (tm) {
+      if (dur() + tail >= END) {
+        tm = false;
+        A.currentTime = 0;
+        A.play();
+      } else tp = !tp;
+    } else {
+      A.paused ? A.play() : A.pause();
+    }
+  } else {
+    playing = !playing;
+    if (sim >= END) sim = 0;
+  }
+  ui();
+}
+
+function ui() {
+  const playingNow = isPl();
+  $('#pp').innerHTML = playingNow
+    ? '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 2h4v12H3zM9 2h4v12H9z" fill="currentColor"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z" fill="currentColor"/></svg>';
+  $('#pp').setAttribute('aria-label', playingNow ? 'توقف' : 'پخش');
+}
+ui();
+
+$('#pp').onclick = toggle;
+A.onplay = A.onpause = ui;
+A.onended = () => { tm = true; tail = 0; tp = true; ui(); };
+
+rg.oninput = () => seek(+rg.value);
+rg.onpointerdown = () => drag = true;
+addEventListener('pointerup', () => drag = false);
+addEventListener('keydown', e => {
+  if (e.code === 'Space' && !e.target.closest('button,input,textarea,a')) {
+    e.preventDefault();
+    if (started) toggle();
+  }
+});
+
+/* ---------- Start button ---------- */
+$('#start-btn').onclick = () => {
+  started = true;
+  $('#start-screen').classList.add('hide');
+  $('#bar').classList.add('show');
+
+  // Try to play the audio
+  A.play().then(() => {
+    hasAudio = true;
+    playing = false;
+  }).catch(() => {
+    // If autoplay blocked or file missing, fall back to simulation
+    hasAudio = false;
+    playing = true;
+  });
+  ui();
+};
+
+/* ---------- Layout & scene data ---------- */
+function place() {
+  const e = els[Math.max(idx, 0)];
+  if (e) tr.style.transform = `translateY(${-(e.offsetTop + e.offsetHeight / 2)}px)`;
+}
+
+function mark(i) {
+  idx = i;
+  els.forEach((e, k) => {
+    const d = k - i;
+    e.className = 'l' + (d === 0 ? ' on' : d === 1 ? ' n1' : d === 2 ? ' n2' : d === -1 ? ' p1' : '');
+  });
+  place();
+}
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const sm = u => (u = cl(u), u * u * (3 - 2 * u));
+const eo = u => 1 - (1 - cl(u)) ** 2;
+const mix = (a, b, q) => a.map((v, i) => v + (b[i] - v) * q);
+
+function spd(t) {
+  if (t >= 165) return 0;
+  for (let i = 1; i < SP.length; i++) {
+    if (t < SP[i][0]) {
+      const [a, b] = SP[i - 1], [c, d] = SP[i];
+      return (b + (d - b) * (t - a) / (c - a)) * 0.001;
+    }
+  }
+  return 0;
+}
+
+const cam = t => {
+  const f = cl(t, 0, 199.9) * 20, i = f | 0;
+  return camT[i] + (camT[i + 1] - camT[i]) * (f - i);
+};
+
+function size() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  w = innerWidth;
+  h = innerHeight;
+  cv.width = w * dpr;
+  cv.height = h * dpr;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  gy = h * 0.62;
+  k = Math.min(h * 0.16, w * 0.3);
+  Pw = w * 1.6;
+
+  camT = [0];
+  for (let i = 1; i <= 4001; i++) camT[i] = camT[i - 1] + spd(i / 20) * w * 0.05;
+  c22 = cam(22);
+  c156 = cam(156);
+  D = cam(165) - c156;
+
+  const r = rng(7);
+  const sc = Math.max(0.75, Math.min(1.25, h / 800));
+
+  stars = Array.from({ length: 100 }, () => ({
+    x: r() * w, y: r() * h * 0.5, s: r() * 1.4 + 0.3, p: r() * 6
+  }));
+
+  forest = [0, 1, 2].map(l => Array.from({ length: 12 + l * 2 }, () => ({
+    x: r() * Pw, H: h * (0.2 + r() * 0.14) * (0.8 + l * 0.15)
+  })));
+
+  bl = [];
+  const HU = [45, 10, 200, 150, 25, 350, 175];
+  const wEnd = c156 - c22 + w;
+  for (let x = 0, i = 0; x < wEnd; i++) {
+    const bw = (56 + r() * 30) * sc;
+    const st = r() > 0.5 ? 2 : 1;
+    const ty = r() > 0.5 ? 1 : 0;
+    const b = {
+      x, w: bw, st, type: ty, hue: HU[i % 7], l: 30 + r() * 6,
+      bh: st * h * 0.085 + h * 0.025, lamp: i % 2 === 0, i, win: []
+    };
+    b.rh = ty ? h * 0.07 : Math.min(bw * 0.75, h * 0.09);
+    for (let q = 0; q < st; q++) {
+      (q === st - 1 ? [0.14, 0.72] : [0.14, 0.43, 0.72]).forEach(f => b.win.push([f, q, r() > 0.25]));
+    }
+    bl.push(b);
+    x += bw + r() * 6;
+  }
+
+  flw = Array.from({ length: 150 }, () => ({
+    x: r() * (D + w * 1.2), y: r(),
+    hu: [340, 50, 0, 280, 200][(r() * 5) | 0],
+    s: 1.5 + r() * 1.8
+  }));
+
+  ff = Array.from({ length: 34 }, () => ({
+    x: r() * w, y: h * (0.28 + r() * 0.34), p: r() * 6, f: 0.6 + r() * 1.2
+  }));
+
+  setTimeout(place, 0);
+}
+addEventListener('resize', size);
+size();
+
+/* ---------- Drawing helpers ---------- */
+function burst(x, y) {
+  const hh = cur.h + (Math.random() - 0.5) * 90;
+  for (let i = 0; i < 38; i++) {
+    const a = Math.random() * 6.283, v = 70 + Math.random() * 190;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 1, h: hh });
+  }
+}
+
+function pine(x, y, H, a) {
+  g.save();
+  g.translate(x, y);
+  g.rotate(a);
+  for (let i = 0; i < 3; i++) {
+    const q = H * (0.2 - i * 0.045), y0 = -H * (0.22 + i * 0.27);
+    g.beginPath();
+    g.moveTo(-q, y0);
+    g.lineTo(0, y0 - H * 0.42);
+    g.lineTo(q, y0);
+    g.fill();
+  }
+  g.fillRect(-H * 0.02, -H * 0.22, H * 0.04, H * 0.22);
+  g.restore();
+}
+
+const glow = (x, y, r, c, a) => {
+  const q = g.createRadialGradient(x, y, 0, x, y, r);
+  q.addColorStop(0, `hsla(${c},${a})`);
+  q.addColorStop(1, `hsla(${c},0)`);
+  g.fillStyle = q;
+  g.fillRect(x - r, y - r, r * 2, r * 2);
+};
+
+/* ---------- Old European houses – improved depth & variety ---------- */
+function house(b, x, layer = 1) {
+  // layer 1 = front (full detail), layer 0.6 = mid, layer 0.35 = far
+  const top = gy - b.bh * (0.85 + layer * 0.15);
+  const scaleW = b.w * (0.7 + layer * 0.3);
+  const wallL = b.l - (1 - layer) * 12;
+  const wall = `hsl(${b.hue},22%,${wallL}%)`;
+  const wallDark = `hsl(${b.hue},18%,${wallL - 8}%)`;
+  const roofCol = `hsl(${(b.hue + 18) % 360},24%,${Math.max(14, wallL - 16)}%)`;
+
+  const alpha = 0.45 + layer * 0.55;
+  g.save();
+  g.globalAlpha = alpha;
+
+  // main wall
+  g.fillStyle = wall;
+  g.fillRect(x, top, scaleW, b.bh * layer + b.bh * 0.15);
+
+  // side shadow
+  g.fillStyle = wallDark;
+  g.fillRect(x + scaleW * 0.8, top, scaleW * 0.2, b.bh * layer + b.bh * 0.15);
+
+  // floor separation line
+  if (b.st > 1 && layer > 0.5) {
+    g.fillStyle = 'hsla(0,0%,0%,0.15)';
+    g.fillRect(x, top + (b.bh * layer + b.bh * 0.15) * 0.48, scaleW, 1.5);
+  }
+
+  // pitched roof
+  const rh = b.rh * (0.7 + layer * 0.3);
+  g.fillStyle = roofCol;
+  g.beginPath();
+  g.moveTo(x - 4, top + 1);
+  g.lineTo(x + scaleW * 0.5, top - rh);
+  g.lineTo(x + scaleW + 4, top + 1);
+  g.closePath();
+  g.fill();
+
+  // roof thickness
+  g.fillStyle = `hsl(${(b.hue + 15) % 360},18%,${Math.max(12, wallL - 20)}%)`;
+  g.beginPath();
+  g.moveTo(x - 4, top + 1);
+  g.lineTo(x + scaleW + 4, top + 1);
+  g.lineTo(x + scaleW + 1, top + 3.5);
+  g.lineTo(x - 1, top + 3.5);
+  g.closePath();
+  g.fill();
+
+  // chimney
+  if (b.lamp && layer > 0.6) {
+    const cx = x + scaleW * 0.6;
+    g.fillStyle = 'hsl(20,16%,30%)';
+    g.fillRect(cx, top - rh - 7, scaleW * 0.08, 10);
+    g.fillStyle = 'hsl(15,14%,20%)';
+    g.fillRect(cx - 1.5, top - rh - 9, scaleW * 0.11, 3);
+  }
+
+  // windows (only detailed on closer layers)
+  if (layer > 0.45) {
+    const ww = scaleW * 0.12;
+    const wh = h * 0.028 * layer;
+    for (const q of b.win) {
+      const wx = x + scaleW * q[0];
+      const wy = top + h * 0.014 + q[1] * h * 0.07 * layer;
+
+      g.fillStyle = 'hsla(35,20%,65%,0.4)';
+      g.fillRect(wx - 1.5, wy - 1.5, ww + 3, wh + 3);
+
+      g.fillStyle = q[2] ? 'hsla(38,88%,60%,0.9)' : 'hsl(220,22%,10%)';
+      g.fillRect(wx, wy, ww, wh);
+
+      if (q[2] && layer > 0.7) {
+        g.fillStyle = 'hsla(30,15%,25%,0.35)';
+        g.fillRect(wx + ww * 0.45, wy, ww * 0.1, wh);
+        g.fillRect(wx, wy + wh * 0.45, ww, wh * 0.1);
+      }
+    }
+  }
+
+  // door (only front layer)
+  if (layer > 0.8) {
+    const dw = scaleW * 0.17;
+    const dh = h * 0.048;
+    const dx = x + scaleW * 0.42;
+    g.fillStyle = 'hsl(25,28%,13%)';
+    g.fillRect(dx, gy - dh, dw, dh);
+    g.beginPath();
+    g.arc(dx + dw / 2, gy - dh, dw / 2, Math.PI, 0);
+    g.fill();
+    g.fillStyle = 'hsl(42,40%,52%)';
+    g.beginPath();
+    g.arc(dx + dw * 0.75, gy - dh * 0.42, 1.4, 0, 6.283);
+    g.fill();
+  }
+
+  g.restore();
+}
+
+function lamp(x, t, i) {
+  const poleH = h * 0.11;
+  const y = gy - poleH;
+  const lv = 0.85 + 0.15 * Math.sin(t * 1.4 + (i % 3) * 2.1);
+
+  // pole
+  g.strokeStyle = 'hsl(220,8%,18%)';
+  g.lineWidth = 2.5;
+  g.lineCap = 'round';
+  g.beginPath();
+  g.moveTo(x, gy + 2);
+  g.lineTo(x, y + 6);
+  g.stroke();
+
+  // lamp head
+  g.fillStyle = 'hsl(30,15%,22%)';
+  g.beginPath();
+  g.moveTo(x - 5, y + 6);
+  g.lineTo(x - 4, y - 2);
+  g.lineTo(x + 4, y - 2);
+  g.lineTo(x + 5, y + 6);
+  g.closePath();
+  g.fill();
+
+  // light glow
+  g.fillStyle = `hsla(42,95%,78%,${0.9 * lv})`;
+  g.beginPath();
+  g.arc(x, y + 1, 3.5, 0, 6.283);
+  g.fill();
+  glow(x, y + 2, h * 0.07, '42,90%,75%', 0.35 * lv);
+}
+
+/* ---------- Stick figures (improved) ---------- */
+const ik = (ax, ay, tx, ty, l1, l2, s) => {
+  const d = Math.min(Math.hypot(tx - ax, ty - ay), l1 + l2 - 0.001) || 0.001;
+  const a = Math.atan2(ty - ay, tx - ax);
+  const b = a + s * Math.acos(cl((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1));
+  return [ax + Math.cos(b) * l1, ay + Math.sin(b) * l1, ax + Math.cos(a) * d, ay + Math.sin(a) * d];
+};
+
+/* Improved sitting poses — more natural hips & legs */
+const STAND = [0, -0.46, 0, -0.06, 0, 0.06, 0, -0.05, -0.5, 0.05, -0.5];
+const STEP  = [0.05, -0.46, 0.04, 0.17, -0.07, -0.04, 0, -0.05, -0.5, 0.05, -0.5];
+const HUG   = [0, -0.46, 0.1, -0.06, 0, 0.06, 0, 0.24, -0.64, 0.24, -0.58];
+
+/* Proper proposal kneel (matches the reference image) */
+const KNEEL = [0, -0.32, 0.08,  0.22, 0.02,  -0.18, -0.02,   0.18, -0.78,  0.12, -0.42];
+
+const JOY   = [0, -0.46, -0.02, -0.06, 0, 0.06, 0, 0.07, -0.66, 0.09, -0.62];
+
+/* Sitting from behind / 3/4 rear view — better weight & leg placement */
+const SITB = [0, -0.20, 0.12,  0.18, 0.04,  0.26, 0.02,  -0.08, -0.38,  0.16, -0.30];
+const SITG = [0, -0.20, 0.38,  0.18, 0.04,  0.26, 0.02,   0.10, -0.26,  0.16, -0.22];
+
+function fig(Q, x, y, K, d, c, lw, girl) {
+  const L = (a, b) => [x + a * d * K, y + b * K];
+  const hx = Q[0], hy = Q[1], ln = Q[2];
+  const sx = hx + Math.sin(ln) * 0.3, sy = hy - Math.cos(ln) * 0.3;
+
+  g.save();
+  g.strokeStyle = g.fillStyle = c;
+  g.lineWidth = lw;
+  g.lineCap = g.lineJoin = 'round';
+
+  const seg = a => {
+    g.beginPath();
+    a.forEach((q, i) => {
+      const m = L(q[0], q[1]);
+      i ? g.lineTo(m[0], m[1]) : g.moveTo(m[0], m[1]);
+    });
+    g.stroke();
+  };
+
+  // torso
+  seg([[hx, hy], [sx, sy]]);
+
+  // legs
+  for (let i = 0; i < 2; i++) {
+    const fx = Q[3 + 2 * i];
+    const e = ik(hx, hy, fx, Q[4 + 2 * i], 0.23, 0.23, fx - hx < -0.18 ? 1 : -1);
+    seg([[hx, hy], [e[0], e[1]], [e[2], e[3]]]);
+  }
+
+  // arms
+  for (let i = 0; i < 2; i++) {
+    const e = ik(sx, sy, Q[7 + 2 * i], Q[8 + 2 * i], 0.15, 0.15, 1);
+    seg([[sx, sy], [e[0], e[1]], [e[2], e[3]]]);
+  }
+
+  // head
+  const hl = [sx + Math.sin(ln) * 0.12, sy - Math.cos(ln) * 0.12 - 0.03];
+  const m = L(hl[0], hl[1]);
+  g.beginPath();
+  g.arc(m[0], m[1], 0.105 * K, 0, 6.283);
+  g.fill();
+
+  // simple hair/skirt for girl
+  if (girl) {
+    seg([[hl[0] - 0.08, hl[1] - 0.02], [hl[0] - 0.19, hl[1] + 0.08]]);
+    g.globalAlpha *= 0.5;
+    const a = L(hx + Math.sin(ln) * 0.08, hy - 0.12);
+    const b = L(hx - 0.14, hy + 0.08);
+    const e = L(hx + 0.14, hy + 0.08);
+    g.beginPath();
+    g.moveTo(a[0], a[1]);
+    g.lineTo(b[0], b[1]);
+    g.lineTo(e[0], e[1]);
+    g.fill();
+  }
+  g.restore();
+}
+
+function heart(x, y, s, a) {
+  g.save();
+  g.translate(x, y);
+  g.scale(s, s);
+  g.globalAlpha = a;
+  g.shadowColor = 'hsl(350,100%,60%)';
+  g.shadowBlur = 22;
+  g.fillStyle = 'hsl(350,90%,62%)';
+  g.beginPath();
+  g.moveTo(0, 0.9);
+  g.bezierCurveTo(-1.2, 0.1, -0.7, -0.9, 0, -0.35);
+  g.bezierCurveTo(0.7, -0.9, 1.2, 0.1, 0, 0.9);
+  g.fill();
+  g.restore();
+}
+
+/* ---------- Characters ---------- */
+function statue(t, ex) {
+  const sx = w * (t < 40 ? 1.15 - 0.65 * eo((t - 32) / 8) : 0.5 - 0.36 * sm((t - 40) / 99)) - ex;
+  if (sx > w + k || sx < -k) return;
+
+  const ks = 0.8 * k, pb = 0.17 * k;
+  const q = [0, -0.46, -0.03, -0.05, 0, 0.05, 0, 0.16, -0.84, -0.04, -0.48];
+  const y = gy - pb - 0.025 * k;
+
+  g.save();
+  g.globalAlpha = 0.92;
+  g.fillStyle = 'hsl(222,8%,31%)';
+  g.fillRect(sx - 0.17 * k, gy - pb, 0.34 * k, pb);
+  g.fillStyle = 'hsl(222,8%,41%)';
+  g.fillRect(sx - 0.2 * k, gy - pb - 0.025 * k, 0.4 * k, 0.03 * k);
+  fig(q, sx, y, ks, 1, 'hsl(220,8%,54%)', 0.075 * ks);
+  g.restore();
+}
+
+function guitar(x, y, u, d) {
+  g.save();
+  g.translate(x, y);
+  g.scale(d, 1);
+  g.rotate(-0.5);
+  const body = 'hsl(28,62%,40%)';
+  g.fillStyle = body;
+  g.strokeStyle = 'hsl(22,50%,18%)';
+  g.lineWidth = 0.012 * u;
+  g.beginPath(); g.arc(0, 0, 0.085 * u, 0, 6.283); g.fill(); g.stroke();
+  g.beginPath(); g.arc(0.15 * u, 0, 0.062 * u, 0, 6.283); g.fill(); g.stroke();
+  g.fillRect(0.05 * u, -0.045 * u, 0.1 * u, 0.09 * u);
+  g.fillStyle = 'hsl(22,45%,14%)';
+  g.beginPath(); g.arc(0, 0, 0.03 * u, 0, 6.283); g.fill();
+  g.fillRect(-0.055 * u, -0.028 * u, 0.014 * u, 0.056 * u);
+  g.fillRect(0.2 * u, -0.015 * u, 0.26 * u, 0.03 * u);
+  g.fillRect(0.46 * u, -0.024 * u, 0.06 * u, 0.048 * u);
+  g.strokeStyle = 'hsla(0,0%,90%,.7)';
+  g.lineWidth = 0.003 * u;
+  for (let i = -2.5; i <= 2.5; i++) {
+    g.beginPath();
+    g.moveTo(-0.05 * u, i * 0.0045 * u);
+    g.lineTo(0.5 * u, i * 0.0045 * u);
+    g.stroke();
+  }
+  g.fillStyle = 'hsl(40,20%,70%)';
+  for (let i = 0; i < 3; i++) g.fillRect((0.28 + i * 0.07) * u, -0.015 * u, 0.004 * u, 0.03 * u);
+  g.restore();
+}
+
+function guitarist(t, ex) {
+  const x = w * (1.16 - 0.28 * eo((t - 73) / 66)) - ex;
+  if (x > w + k || x < -k) return;
+
+  const ks = 0.85 * k;
+  const L = (a, b) => [x - a * ks, gy + b * ks];
+  const st = Math.sin(t * 12) * 0.04 * (0.4 + env);
+
+  glow(x, gy - 0.4 * ks, ks * 1.5, '38,90%,60%', 0.15);
+  g.save();
+  g.globalAlpha = 0.92;
+  g.strokeStyle = 'hsl(30,25%,32%)';
+  g.lineWidth = 0.03 * ks;
+  g.lineCap = 'round';
+  g.beginPath();
+  [[[-0.1, -0.25], [0.1, -0.25]], [[-0.1, -0.25], [-0.1, -0.62]],
+   [[-0.08, -0.25], [-0.08, 0]], [[0.08, -0.25], [0.08, 0]]].forEach(s => {
+    const a = L(...s[0]), b = L(...s[1]);
+    g.moveTo(a[0], a[1]);
+    g.lineTo(b[0], b[1]);
+  });
+  g.stroke();
+  fig([0, -0.27, -0.05, 0.22, 0, 0.15, 0, 0.12, -0.38 + st, 0.27, -0.55], x, gy, ks, -1, '#ffffff', 0.075 * ks);
+  const c = L(0.12, -0.4);
+  guitar(c[0], c[1], ks, -1);
+  g.restore();
+}
+
+/* ========== Final sitting – clear readable stick figures ========== */
+function drawSitPose(x, y, scale, color, isGirl, t, faceLeft) {
+  const s = scale;
+  const b = Math.sin(t * 0.85) * 0.005 * s;
+  const dir = faceLeft ? -1 : 1;
+
+  g.save();
+  g.translate(x, y);
+  g.scale(dir, 1);
+  g.strokeStyle = color;
+  g.fillStyle = color;
+  g.lineWidth = Math.max(3.5, 0.085 * s); // thicker so they are actually visible
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+
+  // Head
+  g.beginPath();
+  g.arc(0, -0.42 * s + b, 0.11 * s, 0, 6.283);
+  g.fill();
+
+  // Neck + torso
+  g.beginPath();
+  g.moveTo(0, -0.31 * s + b);
+  g.lineTo(0, -0.06 * s + b);
+  g.stroke();
+
+  // Shoulders
+  g.beginPath();
+  g.moveTo(-0.14 * s, -0.28 * s + b);
+  g.lineTo(0.14 * s, -0.28 * s + b);
+  g.stroke();
+
+  // Left arm (supporting)
+  g.beginPath();
+  g.moveTo(-0.14 * s, -0.28 * s + b);
+  g.quadraticCurveTo(-0.24 * s, -0.10 * s, -0.18 * s, 0.08 * s);
+  g.stroke();
+
+  // Right arm
+  g.beginPath();
+  g.moveTo(0.14 * s, -0.28 * s + b);
+  g.quadraticCurveTo(0.22 * s, -0.08 * s, 0.16 * s, 0.06 * s);
+  g.stroke();
+
+  // Left leg (bent)
+  g.beginPath();
+  g.moveTo(0, -0.06 * s + b);
+  g.quadraticCurveTo(-0.18 * s, 0.04 * s, -0.10 * s, 0.14 * s);
+  g.stroke();
+
+  // Right leg (extended) – main feature of the reference
+  g.beginPath();
+  g.moveTo(0, -0.06 * s + b);
+  g.quadraticCurveTo(0.25 * s, 0.02 * s, 0.36 * s, 0.12 * s);
+  g.stroke();
+
+  // Simple hair for girl
+  if (isGirl) {
+    g.beginPath();
+    g.moveTo(-0.08 * s, -0.48 * s + b);
+    g.quadraticCurveTo(-0.18 * s, -0.36 * s, -0.12 * s, -0.22 * s);
+    g.moveTo(0.08 * s, -0.50 * s + b);
+    g.quadraticCurveTo(0.18 * s, -0.38 * s, 0.12 * s, -0.24 * s);
+    g.stroke();
+  }
+
+  g.restore();
+}
+
+function sit(t, x, y) {
+  const gx = x - 0.22 * k;
+  const bx = x + 0.12 * k;
+
+  // Girl: soft pink, Boy: pure white
+  drawSitPose(gx, y, k * 1.05, 'hsl(340,80%,78%)', true, t, true);
+  drawSitPose(bx, y, k * 1.1, '#ffffff', false, t, false);
+}
+
+function couple(t, ex) {
+  if (t < 128) return;
+
+  const cx = w * 0.5, y = gy + 0.03 * h;
+  const ar = 1 - eo((t - 130) / 8);
+  const sh = (1.25 * w - cx) * ar - ex;
+
+  // timing phases
+  const approach = sm((t - 139) / 2);          // girl walks closer
+  const hugPhase = sm((t - 143) / 1.4);        // brief hug
+  const kneelPhase = sm((t - 147.2) / 2.2);    // boy goes down on one knee
+  const heartPull = sm((t - 150.5) / 1.6);     // reaches into chest
+  const offer = sm((t - 152.8) / 2.0);         // offers the heart
+
+  const bx0 = cx - 0.12 * k;
+  const gx0 = cx + 0.12 * k + 0.13 * k * (1 - approach);
+
+  // boy pose: stand → hug → proper kneel
+  let bp = mix(STAND, HUG, hugPhase);
+  bp = mix(bp, KNEEL, kneelPhase);
+
+  // girl pose
+  let gp = mix(STAND, STEP, Math.sin(Math.PI * approach));
+  gp = mix(gp, mix(HUG, JOY, offer * 0.7), hugPhase);
+
+  const bxx = bx0 + (cx - 0.22 * k - bx0) * kneelPhase + sh;
+  const gxx = gx0 + sh;
+
+  glow(cx + sh, y - 0.45 * k, k * 1.3, '30,90%,60%', 0.13 * sm((t - 136) / 3));
+
+  // draw girl then boy
+  fig(gp, gxx, y, k, -1, 'hsl(340,90%,82%)', 0.075 * k, true);
+  fig(bp, bxx, y, k, 1, '#ffffff', 0.075 * k);
+
+  // Heart extraction & offering sequence
+  if (t >= 150.2) {
+    // start from boy's chest
+    const chestX = bxx + 0.04 * k;
+    const chestY = y - 0.38 * k;
+
+    // hand reaches toward chest then extends to girl
+    const handX = chestX + (gxx - 0.08 * k - chestX) * offer;
+    const handY = chestY - 0.22 * k * offer - 0.05 * k * heartPull;
+
+    // the heart itself
+    const heartProgress = cl((t - 150.8) / 2.4);
+    const hx = chestX + (handX - chestX) * heartProgress;
+    const hy = chestY + (handY - chestY) * heartProgress - 0.04 * k * Math.sin(heartProgress * Math.PI);
+
+    const heartSize = 0.055 * k * (0.4 + 0.6 * eo(heartProgress)) * (1 + 0.12 * env);
+    const heartAlpha = cl(heartProgress * 1.8);
+
+    if (heartAlpha > 0.05) {
+      heart(hx, hy, heartSize, heartAlpha);
+    }
+  }
+
+  // floating small hearts after the offer
+  for (let i = 0; i < 6; i++) {
+    const a = t - 155.5 - i * 0.28;
+    if (a > 0 && a < 2.8) {
+      const px = gxx + Math.sin(i * 1.7 + t) * 0.14 * k;
+      const py = y - 0.75 * k - a * 0.2 * k;
+      heart(px, py, 0.022 * k, (1 - a / 2.8) * 0.85);
+    }
+  }
+}
+
+/* ---------- Main render loop ---------- */
+function frame(ts) {
+  const dt = Math.min((ts - last) / 1000, 0.1);
+  last = ts;
+
+  if (!hasAudio && playing) {
+    sim += dt;
+    if (sim >= END) { sim = END; playing = false; ui(); }
+  }
+  if (hasAudio && tm && tp) {
+    tail += dt;
+    if (dur() + tail >= END) { tail = END - dur(); tp = false; ui(); }
+  }
+
+  const t = now();
+  const pl = isPl();
+
+  // color palette transition
+  let s = 'i';
+  for (const [a, q] of SECTIONS) if (t >= a) s = q;
+  const T = PALETTE[s];
+  const kk = 1 - Math.exp(-dt * 2.2);
+  cur.h = (cur.h + (((T.h - cur.h + 540) % 360) - 180) * kk + 360) % 360;
+  cur.fire += (T.fire - cur.fire) * kk;
+
+  // audio reactive
+  let hit = false;
+  if (hasAudio && an && pl) {
+    an.getByteFrequencyData(buf);
+    let v = 0;
+    for (let i = 1; i < 7; i++) v += buf[i];
+    v /= 1530;
+    pk = Math.max(v, pk * 0.9995);
+    const n = v / (pk || 1);
+    slow = slow * 0.94 + n * 0.06;
+    if (n > slow * 1.2 && n > 0.55 && ts - lh > 250) { hit = true; lh = ts; }
+    env = Math.max(env - dt * 3, n * n);
+  } else if (!hasAudio && pl && t < 175) {
+    const ph = t * 2;
+    if (Math.floor(ph) !== Math.floor(pph)) hit = true;
+    pph = ph;
+    env = Math.max(env - dt * 3, hit ? 0.9 : 0);
+  } else {
+    env = Math.max(env - dt * 3, 0);
+  }
+
+  root.setProperty('--glow', col(60, 0.8));
+  root.setProperty('--ac', col(68));
+
+  const cm = cam(t);
+  // smoother forest fade
+  const fa = 1 - cl((t - 18) / 14);
+  // City starts at 25s, fades in over ~5 seconds
+  const cityStrength = cl((t - 25) / 5);
+  const ex = t > 156 ? cm - c156 : 0;
+  const bot = h * 0.67;
+
+  // sky
+  let gr = g.createLinearGradient(0, 0, 0, gy);
+  gr.addColorStop(0, col(3));
+  gr.addColorStop(1, col(12 + env * 3));
+  g.fillStyle = gr;
+  g.fillRect(0, 0, w, bot);
+
+  // moon
+  const mr = Math.min(w, h) * 0.035;
+  glow(w * 0.8, h * 0.12, mr * 6, '48,60%,80%', 0.22);
+  g.fillStyle = 'hsl(48,45%,90%)';
+  g.beginPath();
+  g.arc(w * 0.8, h * 0.12, mr, 0, 6.283);
+  g.fill();
+
+  // stars
+  for (const o of stars) {
+    g.fillStyle = `hsla(${cur.h | 0},20%,88%,${0.35 + 0.5 * Math.sin(t * 1.5 + o.p)})`;
+    g.fillRect(o.x, o.y, o.s, o.s);
+  }
+
+  // soft atmospheric mist (moves slowly)
+  g.save();
+  g.globalAlpha = 0.07 + 0.04 * Math.sin(t * 0.15);
+  for (let i = 0; i < 5; i++) {
+    const mx = ((t * 8 + i * 180) % (w + 200)) - 100;
+    const my = gy * 0.35 + i * h * 0.07;
+    const mg = g.createRadialGradient(mx, my, 0, mx, my, 160 + i * 40);
+    mg.addColorStop(0, 'hsla(250,30%,70%,0.5)');
+    mg.addColorStop(1, 'hsla(250,30%,50%,0)');
+    g.fillStyle = mg;
+    g.fillRect(mx - 200, my - 100, 400, 200);
+  }
+  g.restore();
+
+  // particles
+  if (hit && cur.fire > 0.05 && Math.random() < cur.fire) {
+    burst(w * (0.1 + Math.random() * 0.8), h * (0.04 + Math.random() * 0.24));
+  }
+  g.globalCompositeOperation = 'lighter';
+  parts = parts.filter(o => o.l > 0);
+  for (const o of parts) {
+    o.vy += 130 * dt;
+    o.x += o.vx * dt;
+    o.y += o.vy * dt;
+    o.vx *= 0.985;
+    o.l -= dt * 0.7;
+    g.fillStyle = `hsla(${o.h | 0},70%,65%,${Math.max(o.l, 0)})`;
+    g.beginPath();
+    g.arc(o.x, o.y, 1.8 * o.l + 0.4, 0, 6.283);
+    g.fill();
+  }
+  g.globalCompositeOperation = 'source-over';
+
+  // forest
+  if (fa > 0.01) {
+    [0, 1, 2].forEach(l => {
+      g.fillStyle = col(5 + (2 - l) * 3, fa * (0.6 + 0.2 * l));
+      for (const o of forest[l]) {
+        pine(((o.x - cm * [0.25, 0.5, 1][l]) % Pw + Pw) % Pw - 0.2 * w, gy + 0.02 * h, o.H,
+          Math.sin(t * 1.3 + o.x) * (0.012 + 0.02 * env));
+      }
+    });
+  }
+
+  // ---------- CITY – appears after 25s, stays until ~156, then slowly disappears ----------
+  const mm = t > 156;
+  // city takes longer to fully disappear so we don't jump to lake
+  const cityFade = mm ? 1 - cl((t - 156) / 7) : 1;
+
+  if (t >= 27 && cityFade > 0.02) {
+    g.save();
+    // City enters from the right edge (no fade-from-transparent)
+    // It slides in from outside the screen as forest ends
+    const enterT = cl((t - 27) / 4.5);
+    const ease = enterT * enterT * (3 - 2 * enterT);
+    const slide = (1 - ease) * w * 0.55; // starts fully off-screen to the right
+    g.globalAlpha = cityFade; // only fades out later when going to lake
+    g.translate(slide, 0);
+
+    // far layer (smaller, darker, slower parallax)
+    for (const b of bl) {
+      if (b.i % 3 !== 0) continue;
+      const x = b.x * 0.55 + c22 * 0.6 + w * 0.2 - cm * 0.45;
+      if (x > w + 40 || x + b.w < -40) continue;
+      house(b, x, 0.4);
+    }
+
+    // mid layer
+    for (const b of bl) {
+      if (b.i % 2 === 0) continue;
+      const x = b.x * 0.8 + c22 * 0.85 + w * 0.1 - cm * 0.75;
+      if (x > w + 20 || x + b.w < -20) continue;
+      house(b, x, 0.7);
+    }
+
+    // front layer (full detail)
+    for (const b of bl) {
+      const x = b.x + c22 + w - cm;
+      b.sx = x;
+      if (x > w || x + b.w < 0) continue;
+      house(b, x, 1);
+    }
+
+    // street lamps only on front
+    for (const b of bl) {
+      if (b.lamp && b.sx < w && b.sx + b.w > -10) lamp(b.sx + b.w + 5, t, b.i);
+    }
+    g.restore();
+  }
+
+  // ground under city
+  gr = g.createLinearGradient(0, gy, 0, bot);
+  gr.addColorStop(0, col(8));
+  gr.addColorStop(1, col(4));
+  g.fillStyle = gr;
+  g.fillRect(0, gy, w, bot - gy);
+
+  // ========== LAKE SCENE – sequential: city out → grass → lake → characters ==========
+  if (mm) {
+    // phases:
+    // 156-162 : city still fading, grass starts
+    // 162-168 : grass full, lake starts appearing
+    // 168+    : lake + characters
+    const grassIn = cl((t - 157) / 5);
+    const lakeIn  = cl((t - 162) / 5);
+    const enter   = cl((t - 156) / 8);
+
+    // distant hills
+    if (grassIn > 0.02) {
+      g.save();
+      g.globalAlpha = grassIn;
+      const hillBase = gy - 0.18 * h + enter * 0.03 * h;
+      g.fillStyle = col(6);
+      g.beginPath();
+      g.moveTo(0, hillBase);
+      for (let x = 0; x <= w; x += 18) {
+        const n = Math.sin(x * 0.008 + 1.2) * 0.5 + Math.sin(x * 0.019) * 0.3;
+        g.lineTo(x, hillBase - 0.045 * h * (0.55 + 0.45 * n));
+      }
+      g.lineTo(w, gy);
+      g.lineTo(0, gy);
+      g.fill();
+      g.restore();
+    }
+
+    // lake surface (appears after grass)
+    if (lakeIn > 0.02) {
+      g.save();
+      g.globalAlpha = lakeIn;
+      const lakeTop = gy - 0.07 * h - enter * 0.025 * h;
+      const lakeBot = gy + 0.02 * h;
+      gr = g.createLinearGradient(0, lakeTop, 0, lakeBot);
+      gr.addColorStop(0, 'hsla(210,45%,22%,0.85)');
+      gr.addColorStop(0.6, 'hsla(200,40%,16%,0.9)');
+      gr.addColorStop(1, 'hsla(195,35%,12%,0.95)');
+      g.fillStyle = gr;
+      g.fillRect(0, lakeTop, w, lakeBot - lakeTop);
+
+      // moon reflection
+      g.fillStyle = 'hsla(48,60%,85%,0.25)';
+      for (let i = 0; i < 11; i++) {
+        const yy = lakeTop + (i + 0.5) * (lakeBot - lakeTop) / 11;
+        const ww = (5 + i * 2.5) * (0.7 + 0.3 * Math.sin(t * 1.3 + i));
+        g.fillRect(w * 0.78 - ww / 2, yy, ww, 1.4);
+      }
+      g.restore();
+    }
+
+    // meadow
+    const meadowTop = gy + 0.02 * h;
+    if (grassIn > 0.02) {
+      g.save();
+      g.globalAlpha = grassIn;
+      gr = g.createLinearGradient(0, meadowTop, 0, bot);
+      gr.addColorStop(0, 'hsl(135,30%,16%)');
+      gr.addColorStop(1, 'hsl(140,28%,9%)');
+      g.fillStyle = gr;
+      g.fillRect(0, meadowTop, w, bot - meadowTop);
+      g.restore();
+    }
+
+    // flowers
+    const flowerAlpha = cl((t - 159) / 4) * grassIn;
+    if (flowerAlpha > 0.05) {
+      g.globalAlpha = flowerAlpha;
+      for (const f of flw) {
+        // remap x so flowers feel like they come from depth
+        const depth = f.y; // 0 = far, 1 = near
+        const px = (f.x / (D + w * 1.2)) * w * 1.1 - w * 0.05;
+        const py = meadowTop + 8 + depth * (bot - meadowTop - 20);
+        const size = f.s * (0.6 + depth * 0.9);
+
+        g.strokeStyle = 'hsl(135,40%,22%)';
+        g.lineWidth = 1;
+        g.beginPath();
+        g.moveTo(px, py);
+        g.lineTo(px, py + size * 2.2);
+        g.stroke();
+
+        g.fillStyle = `hsl(${f.hu},80%,${f.hu === 50 ? 62 : 70}%)`;
+        g.beginPath();
+        g.arc(px, py, size * (0.85 + 0.15 * Math.sin(t * 2.1 + f.x)), 0, 6.283);
+        g.fill();
+      }
+      g.globalAlpha = 1;
+    }
+  }
+
+  // bottom gradient for lyrics
+  gr = g.createLinearGradient(0, bot, 0, bot + h * 0.06);
+  gr.addColorStop(0, col(5));
+  gr.addColorStop(1, col(2));
+  g.fillStyle = gr;
+  g.fillRect(0, bot, w, h - bot);
+
+  // characters – statue & guitarist only while city is visible
+  if (!mm || cityFade > 0.15) {
+    statue(t, ex);
+    guitarist(t, ex);
+  }
+  if (t < 156 + 5) couple(t, ex);
+
+  // lake characters + fireflies + shooting star
+  if (mm) {
+    // characters appear only after grass + lake are mostly visible
+    const appear = cl((t - 165) / 3);
+
+    if (appear > 0.05) {
+      g.save();
+      g.globalAlpha = appear;
+      const pairX = w * 0.5;
+      const pairY = gy + 0.05 * h;
+      sit(t, pairX, pairY);
+      g.restore();
+    }
+
+    // fireflies
+    g.globalCompositeOperation = 'lighter';
+    const fo = sm((t - 159) / 3.5);
+    for (const o of ff) {
+      const a = Math.pow(Math.max(0, Math.sin(t * o.f + o.p)), 4) * fo;
+      if (a < 0.02) continue;
+      const x = o.x * 0.9 + w * 0.05 + Math.sin(t * 0.4 + o.p) * 16;
+      const y = o.y * 0.7 + h * 0.25 + Math.cos(t * 0.5 + o.p) * 10;
+      glow(x, y, 11, '66,100%,62%', 0.55 * a);
+      g.fillStyle = `hsla(66,100%,80%,${a})`;
+      g.fillRect(x - 1.2, y - 1.2, 2.4, 2.4);
+    }
+
+    // shooting star
+    const starT = t - 163;
+    if (starT > 0 && starT < 3.0) {
+      const progress = starT / 3.0;
+      const sx0 = w * 0.12 + progress * w * 0.75;
+      const sy0 = h * 0.10 + progress * h * 0.22;
+      const trail = 22 + progress * 38;
+
+      g.strokeStyle = `hsla(48,100%,88%,${0.95 - progress * 0.75})`;
+      g.lineWidth = 2.4;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(sx0, sy0);
+      g.lineTo(sx0 - trail * 0.75, sy0 - trail * 0.32);
+      g.stroke();
+
+      glow(sx0, sy0, 16, '48,100%,82%', 0.75 * (1 - progress));
+      g.fillStyle = `hsla(50,100%,96%,${0.98 - progress * 0.6})`;
+      g.beginPath();
+      g.arc(sx0, sy0, 2.6, 0, 6.283);
+      g.fill();
+    }
+
+    g.globalCompositeOperation = 'source-over';
+  }
+
+  // vignette
+  gr = g.createRadialGradient(w / 2, h * 0.4, Math.min(w, h) * 0.3, w / 2, h * 0.4, Math.max(w, h) * 0.8);
+  gr.addColorStop(0, 'rgba(0,0,0,0)');
+  gr.addColorStop(1, 'rgba(0,0,0,.5)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, w, h);
+
+  // lyrics update
+  let i = -1;
+  for (let j = 0; j < lines.length; j++) if (t >= lines[j].t + 0.5) i = j;
+  if (i !== idx) mark(i);
+
+  rg.max = END;
+  document.body.classList.toggle('fin', t >= 176);
+  document.body.classList.toggle('dl', t >= 182);
+  if (!drag) rg.value = t;
+  $('#tm').textContent = fmt(t);
+
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
+
+[executed on device: ARMINAcerN (83cd6c21-b941-4156-bdc3-b5160af477be)]
