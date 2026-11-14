@@ -373,6 +373,7 @@ let w, h, dpr, ac, an, buf, pk = 0.01, slow = 0, lh = 0, env = 0, pph = 0;
 let S = 55, parts = [], camT = [], stars, forest, bl, flw, ff;
 let c22, c156, D, gy, k, Pw;
 let started = false;
+let lastTimedFirework = -1e9;
 
 const rng = s => () => (s = s * 16807 % 2147483647) / 2147483647;
 const dur = () => hasAudio && A.duration ? A.duration : 175;
@@ -1170,6 +1171,13 @@ function frame(ts) {
     g.fillRect(mx - 200, my - 100, 400, 200);
   }
   g.restore();
+
+  // Dedicated 10-second fireworks sequence: 00:16–00:26.
+  // Time-based rather than audio-beat-based, so it runs continuously on every device.
+  if (t >= 16 && t < 26 && t - lastTimedFirework >= 0.42) {
+    burst(w * (0.12 + Math.random() * 0.76), h * (0.06 + Math.random() * 0.28));
+    lastTimedFirework = t;
+  }
 
   // particles
   if (hit && cur.fire > 0.05 && Math.random() < cur.fire) {
