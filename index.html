@@ -1405,7 +1405,7 @@ function frame(ts) {
 
   // lyrics update
   let i = -1;
-  for (let j = 0; j < lines.length; j++) if (t >= lines[j].t) i = j;
+  for (let j = 0; j < lines.length; j++) if (t >= lines[j].t - 1.25) i = j;
   if (i !== idx) mark(i);
 
   rg.max = END;
