@@ -466,20 +466,36 @@ addEventListener('keydown', e => {
 
 /* ---------- Start button ---------- */
 $('#start-btn').onclick = () => {
+  if (started && hasAudio && !A.paused) return;
+
   started = true;
   $('#start-screen').classList.add('hide');
   $('#bar').classList.add('show');
 
-  // Try to play the audio
-  A.play().then(() => {
+  // Start real audio directly inside the user's click gesture.
+  A.volume = 1;
+  A.muted = false;
+  hasAudio = true;
+  playing = false;
+
+  const playRequest = A.play();
+  ui();
+
+  playRequest.then(() => {
     hasAudio = true;
     playing = false;
-  }).catch(() => {
-    // If autoplay blocked or file missing, fall back to simulation
+    ui();
+  }).catch(error => {
+    // Never silently replace a failed audio start with a silent simulation.
     hasAudio = false;
-    playing = true;
+    playing = false;
+    started = false;
+    $('#start-screen').classList.remove('hide');
+    $('#bar').classList.remove('show');
+    $('#start-screen p').textContent = 'Audio could not start — tap to retry';
+    console.error('Medusa audio playback failed:', error);
+    ui();
   });
-  ui();
 };
 
 /* ---------- Layout & scene data ---------- */
